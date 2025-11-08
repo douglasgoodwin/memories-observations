@@ -29,6 +29,9 @@ export default function RootLayout({
               <Link href="/hierarchy" className="hover:text-blue-200 transition">
                 Hierarchy
               </Link>
+              <Link href="/map" className="hover:text-blue-200 transition">
+              	Map
+              </Link>
             </div>
           </div>
         </nav>
