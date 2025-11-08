@@ -98,5 +98,25 @@
       "aesthetic": 1
     },
     "averageScore": 4.75
+  },
+  {
+    "id": "1762572250570",
+    "locationId": "yrl",
+    "locationName": "YRL",
+    "title": "At home, thinking about Ray Bradbury",
+    "description": "",
+    "studentName": "Doug",
+    "recordingType": "memory",
+    "scores": {
+      "importance": 8,
+      "emotion": 8,
+      "intensity": 8,
+      "aesthetic": 1
+    },
+    "filename": "1762572250570_yrl_memory.webm",
+    "audioUrl": "/recordings/1762572250570_yrl_memory.webm",
+    "date": "2025-11-08T03:24:10.573Z",
+    "lat": 34.13287853371735,
+    "lng": -118.35332738207352
   }
 ]

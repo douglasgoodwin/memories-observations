@@ -50,143 +50,97 @@ export async function GET() {
 }
 
 // ---------- POST /api/recordings ----------
-export async function POST(req: NextRequest) {
+// POST /api/recordings
+export async function POST(request: Request) {
   try {
+    // Parse incoming JSON once
+    const body = await request.json();
+
+    // Destructure once (no duplicate const declarations later)
+    const {
+      audioData,
+      title,
+      description = '',
+      locationId,
+      locationName,
+      recordingType,
+      score,
+      studentName,
+      lat,
+      lng,
+      scores,
+      averageScore,
+    } = body;
+
+    // Basic validation
+    if (!audioData) {
+      return NextResponse.json({ error: 'No audio data provided' }, { status: 400 });
+    }
+    if (!title) {
+      return NextResponse.json({ error: 'Title is required' }, { status: 400 });
+    }
+    if (!studentName) {
+      return NextResponse.json({ error: 'Student name is required' }, { status: 400 });
+    }
+    if (!locationId || !locationName) {
+      return NextResponse.json({ error: 'Location is required' }, { status: 400 });
+    }
+    if (score !== undefined) {
+      const sNum = typeof score === 'number' ? score : parseInt(String(score), 10);
+      if (!Number.isFinite(sNum) || sNum < 0 || sNum > 10) {
+        return NextResponse.json({ error: 'Score must be between 0 and 10' }, { status: 400 });
+      }
+    }
+
     await ensureDirectoryExists();
 
-    const ctype = getHeader(req, 'content-type');
-    let payload: any = {};
-    let audioBuffer: Buffer | null = null;
-    let originalFilename = 'recording.webm';
-
-    if (ctype.includes('multipart/form-data')) {
-      // New path: client posts FormData with a binary file
-      const form = await req.formData();
-
-      const file = form.get('audio');
-      if (file instanceof File) {
-        const ab = await file.arrayBuffer();
-        audioBuffer = Buffer.from(ab);
-        originalFilename = file.name || originalFilename;
-      }
-
-      // Scalars
-      for (const k of [
-        'locationId',
-        'locationName',
-        'title',
-        'description',
-        'studentName',
-        'recordingType',
-        'averageScore',
-        'score',
-        'scores', // JSON string if provided
-      ]) {
-        const v = form.get(k);
-        if (typeof v === 'string') payload[k] = v;
-      }
-
-      // Parse scores JSON if present
-      if (typeof payload.scores === 'string' && payload.scores.length) {
-        try { payload.scores = JSON.parse(payload.scores); } catch { payload.scores = null; }
-      }
-    } else if (ctype.includes('application/json')) {
-      // Back-compat path: JSON with base64 audioData
-      payload = await req.json();
-
-      if (payload.audioData && typeof payload.audioData === 'string') {
-        // accept data URL or raw base64
-        const b64 = payload.audioData.includes(';base64,')
-          ? payload.audioData.split(';base64,').pop()!
-          : payload.audioData;
-        audioBuffer = Buffer.from(b64, 'base64');
-      }
-    } else {
-      return bad(415, `Unsupported Content-Type: ${ctype || '(none)'}`);
+    // Decode base64 audio
+    const base64 = String(audioData).split(';base64,').pop();
+    if (!base64) {
+      return NextResponse.json({ error: 'Invalid audio payload' }, { status: 400 });
     }
+    const audioBuffer = Buffer.from(base64, 'base64');
 
-    // Normalize/validate fields
-    const locationId    = String(payload.locationId || '').trim();
-    const locationName  = String(payload.locationName || '').trim();
-    const title         = String(payload.title || '').trim();
-    const description   = String(payload.description || '').trim();
-    const studentName   = String(payload.studentName || '').trim();
-    const recordingType = payload.recordingType === 'observation' ? 'observation' : 'memory';
-
-    if (!locationId)   return bad(400, 'Missing locationId');
-    if (!locationName) return bad(400, 'Missing locationName');
-    if (!title)        return bad(400, 'Missing title');
-    if (!studentName)  return bad(400, 'Missing studentName');
-
-    // Scores: accept legacy single `score` or new `scores` object
-    let scores: any = null;
-    if (payload.scores && typeof payload.scores === 'object') {
-      const s = payload.scores;
-      scores = {
-        importance: Number(s.importance ?? 0),
-        emotion:    Number(s.emotion ?? 0),
-        intensity:  Number(s.intensity ?? 0),
-        aesthetic:  Number(s.aesthetic ?? 0),
-      };
-    }
-
-    // averageScore: trust provided value, otherwise compute from scores,
-    // otherwise fall back to legacy single `score`
-    let averageScore = Number(payload.averageScore ?? NaN);
-    if (!Number.isFinite(averageScore)) {
-      if (scores) {
-        averageScore =
-          (scores.importance + scores.emotion + scores.intensity + scores.aesthetic) / 4;
-      } else if (payload.score !== undefined) {
-        averageScore = Number(payload.score);
-      } else {
-        averageScore = 0;
-      }
-    }
-
-    if (!audioBuffer || audioBuffer.length === 0) {
-      return bad(400, 'No audio data provided');
-    }
-
-    // Persist file
-    const id        = crypto.randomUUID();
+    // Filenames
     const timestamp = Date.now();
-    const filename  = `${timestamp}_${locationId}_${recordingType}.webm`;
-    const filePath  = join(RECORDINGS_DIR, filename);
+    const safeLoc = String(locationId).replace(/[^\w-]/g, '');
+    const safeType = String(recordingType || 'unknown').replace(/[^\w-]/g, '');
+    const filename = `${timestamp}_${safeLoc}_${safeType}.webm`;
+    const filePath = join(RECORDINGS_DIR, filename);
+
+    // Persist audio
     await writeFile(filePath, audioBuffer);
 
-    // Persist metadata (append)
-    const metaStr = await readFile(METADATA_FILE, 'utf8');
-    const meta    = JSON.parse(metaStr);
-
+    // Build new metadata entry
     const newRecording = {
-      id,
-      date: new Date().toISOString(),
-      filename,
-      audioUrl: `/recordings/${filename}`,
-      originalFilename,
-
-      // user fields
+      id: String(timestamp),
       locationId,
       locationName,
       title,
       description,
       studentName,
       recordingType,
-
-      // scoring
-      score: Number.isFinite(Number(payload.score)) ? Number(payload.score) : undefined, // legacy
-      scores: scores ?? null,
-      averageScore,
+      score: score !== undefined ? (typeof score === 'number' ? score : parseInt(String(score), 10)) : undefined,
+      scores,           // optional four-score object if you send it
+      averageScore,     // optional precomputed if you send it
+      filename,
+      audioUrl: `/recordings/${filename}`,
+      date: new Date().toISOString(),
+      lat: lat !== undefined ? (typeof lat === 'number' ? lat : parseFloat(String(lat))) : undefined,
+      lng: lng !== undefined ? (typeof lng === 'number' ? lng : parseFloat(String(lng))) : undefined,
     };
 
+    // Append to metadata.json
+    const metaStr = existsSync(METADATA_FILE) ? await readFile(METADATA_FILE, 'utf8') : '[]';
+    const meta = JSON.parse(metaStr);
     meta.push(newRecording);
     await writeFile(METADATA_FILE, JSON.stringify(meta, null, 2));
 
     return NextResponse.json(newRecording);
-  } catch (err: any) {
-    console.error('POST /api/recordings 500:', err?.stack || err);
-    return NextResponse.json({ error: 'Failed to save recording' }, { status: 500 });
+  } catch (err) {
+    console.error('Detailed error in POST /api/recordings:', err);
+    const message = err instanceof Error ? err.message : 'Unknown error';
+    return NextResponse.json({ error: 'Failed to save recording', details: message }, { status: 500 });
   }
 }
 

@@ -67,6 +67,25 @@ const [recordings, setRecordings] = useState<AudioRecording[]>([]);
 const [recording, setRecording] = useState(false);
 const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
 
+const [geo, setGeo] = useState<{lat?: number; lng?: number; error?: string}>({});
+
+const requestLocation = () => {
+  if (!('geolocation' in navigator)) {
+    setGeo({ error: 'Geolocation not supported on this device.' });
+    return;
+  }
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      setGeo({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+    },
+    (err) => {
+      setGeo({ error: err.message || 'Unable to get location.' });
+    },
+    { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+  );
+};
+
+
 // Form state
 const [studentName, setStudentName] = useState('');
 const [locationId, setLocationId] = useState<LocationId>('northernlights');
@@ -135,6 +154,8 @@ const average = useMemo(
             recordingType,
 			scores,              // send the four-field object
             audioData: base64Audio,
+			lat: geo.lat,
+			lng: geo.lng,
           };
 
           try {
@@ -242,6 +263,21 @@ const average = useMemo(
                 <p className="text-sm text-gray-500 mt-1">{selectedLocation.description}</p>
               )}
             </div>
+            
+			<div className="space-y-2">
+			  <Label>Your Location (optional)</Label>
+			  <div className="flex items-center gap-2">
+				<Button type="button" variant="outline" onClick={requestLocation}>
+				  Use my current location
+				</Button>
+				{geo.lat && geo.lng && (
+				  <span className="text-sm text-gray-600">
+					{geo.lat.toFixed(5)}, {geo.lng.toFixed(5)}
+				  </span>
+				)}
+				{geo.error && <span className="text-sm text-red-600">{geo.error}</span>}
+			  </div>
+			</div>
 
             {/* Recording Type */}
             <div className="space-y-2">
