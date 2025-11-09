@@ -2,6 +2,11 @@
 node_modules/
 jspm_packages/
 
+# Never commit uploads
+public/recordings/
+*.webm
+*.wav
+
 # Log files
 npm-debug.log*
 yarn-debug.log*
