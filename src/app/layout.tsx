@@ -5,7 +5,7 @@ import Link from 'next/link'
 
 export const metadata: Metadata = {
   title: 'UCLA Broad - Memory & Observation Recorder',
-  description: 'Record and rank memories and observations around UCLA Broad Arts Building',
+  description: 'Record and rank memories and observations around the UCLA campus',
 }
 
 export default function RootLayout({

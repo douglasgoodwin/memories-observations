@@ -222,7 +222,7 @@ const average = useMemo(
     <div className="w-full max-w-4xl mx-auto p-4">
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle>UCLA Broad Arts Building - Memory & Observation Recorder</CardTitle>
+          <CardTitle>UCLA Memory & Observation Recorder</CardTitle>
           <CardDescription>
             Record a memory and an observation for each of the 12 locations. Rate the
             importance/emotion/intensity.
