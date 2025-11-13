@@ -10,6 +10,8 @@ public/recordings/
 *.webm
 *.wav
 
+public/recordings/metadata.json
+
 # Log files
 npm-debug.log*
 yarn-debug.log*

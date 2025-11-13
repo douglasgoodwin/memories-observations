@@ -147,6 +147,15 @@ export async function POST(request: Request) {
 // ---------- DELETE /api/recordings?id=... ----------
 export async function DELETE(request: NextRequest) {
   try {
+    // Check admin password
+    const password = request.headers.get('x-admin-password');
+    if (password !== process.env.ADMIN_PASSWORD) {
+      return NextResponse.json(
+        { error: 'Unauthorized - invalid password' }, 
+        { status: 401 }
+      );
+    }
+
     await ensureDirectoryExists();
 
     const { searchParams } = new URL(request.url);
