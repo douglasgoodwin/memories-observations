@@ -2,6 +2,9 @@
 node_modules/
 jspm_packages/
 
+# TypeScript build cache file
+tsconfig.tsbuildinfo
+
 # Never commit uploads
 public/recordings/
 *.webm
