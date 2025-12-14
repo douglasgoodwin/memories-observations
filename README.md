@@ -18,7 +18,7 @@ It is designed for classroom, gallery, and research contexts that explore sound,
 ## Features
 
 Category	Description
-Frontend	Next.js 15 + React + TypeScript + Tailwind
+Frontend	Next.js 16 + React + TypeScript + Tailwind
 Audio	Uses MediaRecorder API to capture WebM audio
 Scoring System	Supports both legacy single-score and new four-score modes
 Data Model	recordings stored as JSON metadata + WebM audio files
@@ -26,7 +26,20 @@ Visualization	Two views — All Recordings and Hierarchy (Heap visualization)
 Deployment	NGINX reverse proxy on Ubuntu with PM2 process manager
 SSL	Certificates managed via Certbot using webroot authentication
 
+## IMPORTANT! Upgrade Next.js and React packages 
 
+See this information: https://nextjs.org/blog/security-update-2025-12-11
+
+```
+fix-react2shell-next - Next.js vulnerability scanner
+
+Checking for 4 known vulnerabilities:
+
+  - CVE-2025-66478 (critical): Remote code execution via crafted RSC payload
+  - CVE-2025-55184 (high): DoS via malicious HTTP request causing server to hang and consume CPU
+  - CVE-2025-55183 (medium): Compiled Server Action source code can be exposed via malicious request
+  - CVE-2025-67779 (high): Incomplete fix for CVE-2025-55184 DoS via malicious RSC payload causing infinite loop
+```
 
 
 ## Directory Structure
