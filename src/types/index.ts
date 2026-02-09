@@ -1,6 +1,7 @@
 // UCLA Broad Arts Building - 12 Locations
 
 export type LocationId =
+  | 'atlarge'
   | 'northernlights' | 'luvalle' | 'sculpturegarden' | 'roycehall' | 'printlab'
   | 'newwightgallery' | 'mathsciencesbuilding' | 'ackerman' | 'yrl'
   | 'bruinwalk' | 'kerckhoff' | 'tongvasteps';
@@ -35,6 +36,7 @@ export interface AudioRecording {
 }
 
 export const BROAD_LOCATIONS: BroadLocation[] = [
+  { id: 'atlarge', name: 'AT LARGE', description: 'Recording at your current location', lat: 0, lng: 0 },
   { id: 'northernlights', name: 'Northern Lights', description: '—', lat: 34.07442071255393, lng: -118.44235863646719 },
   { id: 'luvalle', name: 'Lu Valle Commons', description: '—', lat: 34.07358407052256, lng: -118.43924636157925 },
   { id: 'sculpturegarden', name: 'Sculpture Garden', description: '—', lat: 34.07490402208068, lng: -118.44005202769344 },

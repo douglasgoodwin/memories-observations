@@ -88,7 +88,7 @@ const requestLocation = () => {
 
 // Form state
 const [studentName, setStudentName] = useState('');
-const [locationId, setLocationId] = useState<LocationId>('northernlights');
+const [locationId, setLocationId] = useState<LocationId>('atlarge');
 const [title, setTitle] = useState('');
 const [description, setDescription] = useState('');
 const [recordingType, setRecordingType] = useState<'memory' | 'observation'>('memory');
